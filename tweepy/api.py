@@ -12,8 +12,8 @@ import sys
 import time
 from urllib.parse import urlencode
 
-import requests
-
+import asyncio
+from aiohttp import ClientSession
 import tweepy
 from tweepy.errors import (
     BadRequest, Forbidden, HTTPException, NotFound, TooManyRequests,
@@ -126,7 +126,7 @@ class API:
         if user_agent is None:
             user_agent = (
                 f"Python/{python_version()} "
-                f"Requests/{requests.__version__} "
+                f"Requests/{asyncio.__version__} "
                 f"Tweepy/{tweepy.__version__}"
             )
         self.user_agent = user_agent
@@ -142,9 +142,9 @@ class API:
                 str(type(self.parser))
             )
 
-        self.session = requests.Session()
+        self.session = ClientSession()
 
-    def request(
+    async def request(
         self, method, endpoint, *, endpoint_parameters=(), params=None,
         headers=None, json_payload=None, parser=None, payload_list=False,
         payload_type=None, post_data=None, files=None, require_auth=True,
@@ -225,7 +225,7 @@ class API:
 
                 # Execute request
                 try:
-                    resp = self.session.request(
+                    resp = await self.session.request(
                         method, url, params=params, headers=headers,
                         data=post_data, files=files, json=json_payload,
                         timeout=self.timeout, auth=auth, proxies=self.proxy
@@ -297,7 +297,7 @@ class API:
 
     @pagination(mode='id')
     @payload('status', list=True)
-    def home_timeline(self, **kwargs):
+    async def home_timeline(self, **kwargs):
         """home_timeline(*, count, since_id, max_id, trim_user, \
                          exclude_replies, include_entities)
 
@@ -328,7 +328,7 @@ class API:
         ----------
         https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/api-reference/get-statuses-home_timeline
         """
-        return self.request(
+        return await self.request(
             'GET', 'statuses/home_timeline', endpoint_parameters=(
                 'count', 'since_id', 'max_id', 'trim_user', 'exclude_replies',
                 'include_entities'
@@ -337,7 +337,7 @@ class API:
 
     @pagination(mode='id')
     @payload('status', list=True)
-    def mentions_timeline(self, **kwargs):
+    async def mentions_timeline(self, **kwargs):
         """mentions_timeline(*, count, since_id, max_id, trim_user, \
                              include_entities)
 
@@ -364,7 +364,7 @@ class API:
         ----------
         https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/api-reference/get-statuses-mentions_timeline
         """
-        return self.request(
+        return await self.request(
             'GET', 'statuses/mentions_timeline', endpoint_parameters=(
                 'count', 'since_id', 'max_id', 'trim_user', 'include_entities'
             ), **kwargs
@@ -372,7 +372,7 @@ class API:
 
     @pagination(mode='id')
     @payload('status', list=True)
-    def user_timeline(self, **kwargs):
+    async def user_timeline(self, **kwargs):
         """user_timeline(*, user_id, screen_name, since_id, count, max_id, \
                          trim_user, exclude_replies, include_rts)
 
@@ -411,7 +411,7 @@ class API:
         ----------
         https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/api-reference/get-statuses-user_timeline
         """
-        return self.request(
+        return await self.request(
             'GET', 'statuses/user_timeline', endpoint_parameters=(
                 'user_id', 'screen_name', 'since_id', 'count', 'max_id',
                 'trim_user', 'exclude_replies', 'include_rts'
@@ -422,7 +422,7 @@ class API:
 
     @pagination(mode='id')
     @payload('status', list=True)
-    def get_favorites(self, **kwargs):
+    async def get_favorites(self, **kwargs):
         """get_favorites(*, user_id, screen_name, count, since_id, max_id, \
                          include_entities)
 
@@ -455,7 +455,7 @@ class API:
         ----------
         https://developer.twitter.com/en/docs/twitter-api/v1/tweets/post-and-engage/api-reference/get-favorites-list
         """
-        return self.request(
+        return await self.request(
             'GET', 'favorites/list', endpoint_parameters=(
                 'user_id', 'screen_name', 'count', 'since_id', 'max_id',
                 'include_entities'
@@ -463,7 +463,7 @@ class API:
         )
 
     @payload('status', list=True)
-    def lookup_statuses(self, id, **kwargs):
+    async def lookup_statuses(self, id, **kwargs):
         """lookup_statuses(id, *, include_entities, trim_user, map, \
                            include_ext_alt_text, include_card_uri)
 
@@ -497,7 +497,7 @@ class API:
         ----------
         https://developer.twitter.com/en/docs/twitter-api/v1/tweets/post-and-engage/api-reference/get-statuses-lookup
         """
-        return self.request(
+        return await self.request(
             'GET', 'statuses/lookup', endpoint_parameters=(
                 'id', 'include_entities', 'trim_user', 'map',
                 'include_ext_alt_text', 'include_card_uri'
@@ -1051,7 +1051,7 @@ class API:
 
     @pagination(mode='id')
     @payload('search_results')
-    def search_tweets(self, q, **kwargs):
+    async def search_tweets(self, q, **kwargs):
         """search_tweets(q, *, geocode, lang, locale, result_type, count, \
                          until, since_id, max_id, include_entities)
 
@@ -1143,7 +1143,7 @@ class API:
 
         .. _Twitter's documentation on the standard search API: https://developer.twitter.com/en/docs/twitter-api/v1/tweets/search/overview
         """
-        return self.request(
+        return await self.request(
             'GET', 'search/tweets', endpoint_parameters=(
                 'q', 'geocode', 'lang', 'locale', 'result_type', 'count',
                 'until', 'since_id', 'max_id', 'include_entities'

@@ -40,7 +40,7 @@ class AsyncBaseClient(BaseClient):
     def __init__(
         self, bearer_token=None, consumer_key=None, consumer_secret=None,
         access_token=None, access_token_secret=None, *, return_type=Response,
-        wait_on_rate_limit=False
+        wait_on_rate_limit=False, proxy=None
     ):
         self.bearer_token = bearer_token
         self.consumer_key = consumer_key
@@ -50,6 +50,8 @@ class AsyncBaseClient(BaseClient):
 
         self.return_type = return_type
         self.wait_on_rate_limit = wait_on_rate_limit
+
+        self.proxy = proxy
 
         self.session = None
         self.user_agent = (
@@ -96,7 +98,7 @@ class AsyncBaseClient(BaseClient):
         )
 
         async with session.request(
-            method, url, params=params, json=json, headers=headers
+            method, url, params=params, json=json, headers=headers, proxy=self.proxy
         ) as response:
             await response.read()
 

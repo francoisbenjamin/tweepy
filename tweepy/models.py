@@ -293,7 +293,7 @@ class SavedSearch(Model):
 class SearchResults(ResultSet):
 
     @classmethod
-    def parse(cls, api, json):
+    async def parse(cls, api, json):
         metadata = json['search_metadata']
         results = SearchResults()
         results.refresh_url = metadata.get('refresh_url')

@@ -280,7 +280,7 @@ class API:
 
             # Parse the response payload
             return_cursors = return_cursors or 'cursor' in params or 'next' in params
-            result = parser.parse(
+            result = await parser.parse(
                 resp.text, api=self, payload_list=payload_list,
                 payload_type=payload_type, return_cursors=return_cursors
             )
